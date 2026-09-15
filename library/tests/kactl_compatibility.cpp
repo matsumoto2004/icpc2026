@@ -20,7 +20,6 @@ using vi = vector<int>;
 #include "library/graph/rerooting.hpp"
 #include "library/misc/random.hpp"
 #include "library/misc/to_binary_string.hpp"
-#include "debug.hpp"
 #include "library/misc/debug.hpp"
 
 template<class Mint>
