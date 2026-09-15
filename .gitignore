@@ -1,0 +1,43 @@
+# Personal workspace (shared code lives in template.cpp and library/)
+/problems/
+/scripts/
+/stress/
+/run
+/judge
+/stress-test
+/template.local.cpp
+/README.local.md
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+/.vscode/
+
+# C/C++ build artifacts
+.build/
+**/.build/
+*.o
+*.obj
+*.exe
+*.dSYM/
+a.out
+compile_commands.json
+
+# Local test files (use samples/*.in and samples/*.ans for committed samples)
+input.txt
+output.txt
+
+# Downloaded contest judge data
+**/judge-data/
+
+# Stress-test artifacts
+stress/generated/
+stress/failures/
+
+# Temporary files
+*.tmp
+*.log
