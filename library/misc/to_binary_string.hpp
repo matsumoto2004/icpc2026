@@ -1,3 +1,4 @@
+// Source: https://github.com/matsumoto2004/icpc2026
 /**
  * Converts a non-negative integer to base 2.
  * min_width pads the result with leading zeroes.
@@ -12,17 +13,17 @@
 
 template<std::integral T>
 requires (!std::same_as<std::remove_cv_t<T>, bool>)
-std::string to_binary_string(T value, int min_width = 0) {
-	assert(min_width >= 0);
-	if constexpr (std::signed_integral<T>) assert(value >= 0);
+std::string to_binary_string(T v, int w = 0) {
+	assert(w >= 0);
+	if constexpr (std::signed_integral<T>) assert(v >= 0);
 	using U = std::make_unsigned_t<T>;
-	U x = (U)value;
-	std::string result;
+	U x = (U)v;
+	std::string s;
 	do {
-		result.push_back(char('0' + x % 2));
+		s.push_back(char('0' + x % 2));
 		x /= 2;
 	} while (x);
-	while ((int)result.size() < min_width) result.push_back('0');
-	std::reverse(result.begin(), result.end());
-	return result;
+	while ((int)s.size() < w) s.push_back('0');
+	std::reverse(s.begin(), s.end());
+	return s;
 }

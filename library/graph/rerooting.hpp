@@ -1,3 +1,4 @@
+// Source: https://github.com/matsumoto2004/icpc2026
 /**
  * Generic rerooting DP on a tree.
  *
@@ -36,86 +37,86 @@ struct Rerooting {
 	M policy;
 	std::vector<std::vector<Edge>> graph;
 
-	explicit Rerooting(int n, M policy = M{})
-		: n(n), policy(std::move(policy)), graph(n) {
+	explicit Rerooting(int n, M m = M{})
+		: n(n), policy(std::move(m)), graph(n) {
 		assert(n > 0);
 	}
 
-	void add_edge(int u, int v, const EdgeData& data = EdgeData{}) {
+	void add_edge(int u, int v, const EdgeData& x = EdgeData{}) {
 		assert(0 <= u && u < n);
 		assert(0 <= v && v < n);
 		assert(u != v);
-		graph[u].push_back({v, data});
-		graph[v].push_back({u, data});
+		graph[u].push_back({v, x});
+		graph[v].push_back({u, x});
 		++edge_count;
 	}
 
-	std::vector<DP> solve(int root = 0) const {
-		assert(0 <= root && root < n);
+	std::vector<DP> solve(int r = 0) const {
+		assert(0 <= r && r < n);
 		assert(edge_count == n - 1);
+		const auto& g = graph;
+		const auto& m = policy;
 
-		std::vector<int> parent(n, -1), order;
-		order.reserve(n);
-		parent[root] = root;
-		std::vector<int> stack = {root};
-		while (!stack.empty()) {
-			int v = stack.back();
-			stack.pop_back();
-			order.push_back(v);
-			for (const Edge& edge : graph[v]) {
-				int u = edge.to;
-				if (u == parent[v]) continue;
-				assert(parent[u] == -1); // graph must be a tree
-				parent[u] = v;
-				stack.push_back(u);
+		std::vector<int> par(n, -1), ord;
+		ord.reserve(n);
+		par[r] = r;
+		std::vector<int> st = {r};
+		while (!st.empty()) {
+			int v = st.back();
+			st.pop_back();
+			ord.push_back(v);
+			for (const Edge& e : g[v]) {
+				int u = e.to;
+				if (u == par[v]) continue;
+				assert(par[u] == -1); // graph must be a tree
+				par[u] = v;
+				st.push_back(u);
 			}
 		}
-		assert((int)order.size() == n);
+		assert((int)ord.size() == n);
 
-		std::vector<DP> down(n, policy.identity());
-		for (int oi = n - 1; oi >= 0; --oi) {
-			int v = order[oi];
-			DP merged = policy.identity();
-			for (const Edge& edge : graph[v]) {
-				int u = edge.to;
-				if (parent[u] != v) continue;
-				DP contribution = policy.add_edge(down[u], edge.data, u, v);
-				merged = policy.merge(merged, contribution);
+		std::vector<DP> dn(n, m.identity());
+		for (int i = n - 1; i >= 0; --i) {
+			int v = ord[i];
+			DP x = m.identity();
+			for (const Edge& e : g[v]) {
+				int u = e.to;
+				if (par[u] != v) continue;
+				DP y = m.add_edge(dn[u], e.data, u, v);
+				x = m.merge(x, y);
 			}
-			down[v] = policy.add_vertex(merged, v);
+			dn[v] = m.add_vertex(x, v);
 		}
 
-		std::vector<DP> from_parent(n, policy.identity());
-		std::vector<DP> answer(n, policy.identity());
-		std::vector<DP> prefix;
-		for (int v : order) {
-			int degree = (int)graph[v].size();
-			auto contribution = [&](int i) {
-				const Edge& edge = graph[v][i];
-				int u = edge.to;
-				if (u == parent[v]) {
-					return policy.add_edge(from_parent[v], edge.data, u, v);
+		std::vector<DP> up(n, m.identity()), ans(n, m.identity()), pre;
+		for (int v : ord) {
+			int d = (int)g[v].size();
+			auto get = [&](int i) {
+				const Edge& e = g[v][i];
+				int u = e.to;
+				if (u == par[v]) {
+					return m.add_edge(up[v], e.data, u, v);
 				}
-				return policy.add_edge(down[u], edge.data, u, v);
+				return m.add_edge(dn[u], e.data, u, v);
 			};
 
-			prefix.assign(degree + 1, policy.identity());
-			for (int i = 0; i < degree; ++i) {
-				prefix[i + 1] = policy.merge(prefix[i], contribution(i));
+			pre.assign(d + 1, m.identity());
+			for (int i = 0; i < d; ++i) {
+				pre[i + 1] = m.merge(pre[i], get(i));
 			}
 
-			answer[v] = policy.add_vertex(prefix[degree], v);
-			DP suffix = policy.identity();
-			for (int i = degree - 1; i >= 0; --i) {
-				int u = graph[v][i].to;
-				if (parent[u] == v) {
-					DP without_u = policy.merge(prefix[i], suffix);
-					from_parent[u] = policy.add_vertex(without_u, v);
+			ans[v] = m.add_vertex(pre[d], v);
+			DP suf = m.identity();
+			for (int i = d - 1; i >= 0; --i) {
+				int u = g[v][i].to;
+				if (par[u] == v) {
+					DP x = m.merge(pre[i], suf);
+					up[u] = m.add_vertex(x, v);
 				}
-				suffix = policy.merge(contribution(i), suffix);
+				suf = m.merge(get(i), suf);
 			}
 		}
 
-		return answer;
+		return ans;
 	}
 };

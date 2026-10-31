@@ -1,107 +1,30 @@
-/**
- * Compile-time modular integer.
- * Division is valid when the divisor and MOD are coprime.
- */
-#pragma once
+// Source: https://github.com/matsumoto2004/icpc2026
+// Adapted from KACTL: ModularArithmetic.h (Lukas Polacek, Joshua Andersson; CC0)
+// and euclid.h (Author: Unknown).
+// https://github.com/kth-competitive-programming/kactl/blob/fb67e471a878eb06ad9ed036c38c76b6c913847c/content/number-theory/ModularArithmetic.h
+// https://github.com/kth-competitive-programming/kactl/blob/fb67e471a878eb06ad9ed036c38c76b6c913847c/content/number-theory/euclid.h
+ll euclid(ll a, ll b, ll &x, ll &y) {
+	if (!b) return x = 1, y = 0, a;
+	ll d = euclid(b, a % b, y, x);
+	return y -= a/b * x, d;
+}
 
-#include <cassert>
-#include <iostream>
-#include <utility>
-
-template<int MOD>
-struct ModInt {
-	static_assert(1 <= MOD);
-
-	int x = 0;
-
-	ModInt() = default;
-	ModInt(long long value) {
-		value %= MOD;
-		if (value < 0) value += MOD;
-		x = (int)value;
+const ll mod = 998244353; // change to something else
+struct Mod {
+	ll x;
+	Mod(ll y) : Mod(y%mod+mod,0){}
+	Mod(ll y,int) : x(y<mod?y:y-mod){}
+	Mod operator+(Mod b) { return {x + b.x,0}; }
+	Mod operator-(Mod b) { return {x - b.x + mod,0}; }
+	Mod operator*(Mod b) { return {x * b.x % mod,0}; }
+	Mod operator/(Mod b) { return *this * invert(b); }
+	Mod invert(Mod a) {
+		ll x, y, g = euclid(a.x, mod, x, y);
+		assert(g == 1); return x;
 	}
-
-	static constexpr int mod() { return MOD; }
-	int value() const { return x; }
-
-	ModInt& operator+=(const ModInt& other) {
-		x += other.x;
-		if (x >= MOD) x -= MOD;
-		return *this;
-	}
-
-	ModInt& operator-=(const ModInt& other) {
-		x -= other.x;
-		if (x < 0) x += MOD;
-		return *this;
-	}
-
-	ModInt& operator*=(const ModInt& other) {
-		x = (int)((long long)x * other.x % MOD);
-		return *this;
-	}
-
-	ModInt& operator/=(const ModInt& other) {
-		return *this *= other.inv();
-	}
-
-	ModInt operator+() const { return *this; }
-	ModInt operator-() const { return ModInt(-x); }
-
-	friend ModInt operator+(ModInt left, const ModInt& right) {
-		return left += right;
-	}
-	friend ModInt operator-(ModInt left, const ModInt& right) {
-		return left -= right;
-	}
-	friend ModInt operator*(ModInt left, const ModInt& right) {
-		return left *= right;
-	}
-	friend ModInt operator/(ModInt left, const ModInt& right) {
-		return left /= right;
-	}
-	friend bool operator==(const ModInt& left, const ModInt& right) {
-		return left.x == right.x;
-	}
-	friend bool operator!=(const ModInt& left, const ModInt& right) {
-		return !(left == right);
-	}
-
-	ModInt pow(long long exponent) const {
-		assert(exponent >= 0);
-		ModInt base = *this, result = 1;
-		while (exponent) {
-			if (exponent & 1) result *= base;
-			base *= base;
-			exponent >>= 1;
-		}
-		return result;
-	}
-
-	ModInt inv() const {
-		long long a = x, b = MOD, u = 1, v = 0;
-		while (b) {
-			long long q = a / b;
-			a -= q * b;
-			std::swap(a, b);
-			u -= q * v;
-			std::swap(u, v);
-		}
-		assert(a == 1);
-		return ModInt(u);
-	}
-
-	ModInt operator^(long long exponent) const { return pow(exponent); }
-	// Same calling convention as KACTL's Mod::invert(a).
-	ModInt invert(ModInt a) const { return a.inv(); }
-
-	friend std::ostream& operator<<(std::ostream& out, const ModInt& value) {
-		return out << value.x;
-	}
-	friend std::istream& operator>>(std::istream& in, ModInt& value) {
-		long long x;
-		in >> x;
-		value = ModInt(x);
-		return in;
+	Mod operator^(ll e) {
+		if (!e) return 1;
+		Mod r = *this ^ (e / 2); r = r * r;
+		return e&1 ? *this * r : r;
 	}
 };

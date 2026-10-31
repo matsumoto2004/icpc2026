@@ -1,3 +1,4 @@
+// Source: https://github.com/matsumoto2004/icpc2026
 /**
  * Description: Coordinate compression shared by multiple inputs.
  * Add every value before build(). rank(x) returns the zero-based compressed
@@ -32,108 +33,89 @@ template<class T>
 struct Compress {
 	Compress() = default;
 
-	explicit Compress(const std::vector<T>& input) {
-		add(input);
-		build();
+	explicit Compress(const std::vector<T>& a) { add(a); build(); }
+
+	void add(const T& x) { assert(!ok); v.push_back(x); }
+
+	template<class It>
+	void add(It l, It r) {
+		assert(!ok);
+		v.insert(v.end(), l, r);
 	}
 
-	void add(const T& x) {
-		assert(!built_);
-		values_.push_back(x);
+	template<std::ranges::input_range R>
+	requires std::convertible_to<std::ranges::range_reference_t<R>, T>
+	void add(const R& a) {
+		add(std::ranges::begin(a), std::ranges::end(a));
 	}
 
-	template<class Iterator>
-	void add(Iterator first, Iterator last) {
-		assert(!built_);
-		values_.insert(values_.end(), first, last);
-	}
-
-	template<std::ranges::input_range Range>
-	requires std::convertible_to<std::ranges::range_reference_t<Range>, T>
-	void add(const Range& input) {
-		add(std::ranges::begin(input), std::ranges::end(input));
-	}
-
-	void add(std::initializer_list<T> input) {
-		add(input.begin(), input.end());
-	}
+	void add(std::initializer_list<T> a) { add(a.begin(), a.end()); }
 
 	void build() {
-		assert(!built_);
-		std::sort(values_.begin(), values_.end());
-		values_.erase(std::unique(values_.begin(), values_.end()), values_.end());
-		built_ = true;
+		assert(!ok);
+		std::sort(v.begin(), v.end());
+		v.erase(std::unique(v.begin(), v.end()), v.end());
+		ok = true;
 	}
 
-	int size() const {
-		assert(built_);
-		return (int)values_.size();
-	}
+	int size() const { assert(ok); return (int)v.size(); }
 
-	bool empty() const {
-		assert(built_);
-		return values_.empty();
-	}
+	bool empty() const { assert(ok); return v.empty(); }
 
 	// Number of registered values strictly smaller than x.
 	int lower_rank(const T& x) const {
-		assert(built_);
-		return (int)(std::lower_bound(values_.begin(), values_.end(), x) - values_.begin());
+		assert(ok);
+		return (int)(std::lower_bound(v.begin(), v.end(), x) - v.begin());
 	}
 
 	// Number of registered values smaller than or equal to x.
 	int upper_rank(const T& x) const {
-		assert(built_);
-		return (int)(std::upper_bound(values_.begin(), values_.end(), x) - values_.begin());
+		assert(ok);
+		return (int)(std::upper_bound(v.begin(), v.end(), x) - v.begin());
 	}
 
 	bool contains(const T& x) const {
-		assert(built_);
+		assert(ok);
 		int i = lower_rank(x);
-		return i < size() && !(x < values_[i]);
+		return i < size() && !(x < v[i]);
 	}
 
 	// Exact rank of a value registered before build().
 	int rank(const T& x) const {
 		int i = lower_rank(x);
-		assert(i < size() && !(x < values_[i]));
+		assert(i < size() && !(x < v[i]));
 		return i;
 	}
 
-	const T& value(int compressed) const {
-		assert(built_);
-		assert(0 <= compressed && compressed < (int)values_.size());
-		return values_[compressed];
+	const T& value(int b) const {
+		assert(ok);
+		assert(0 <= b && b < (int)v.size());
+		return v[b];
 	}
 
-	const T& operator[](int compressed) const {
-		return value(compressed);
+	const T& operator[](int b) const { return value(b); }
+
+	template<std::ranges::input_range R>
+	requires std::convertible_to<std::ranges::range_reference_t<R>, T>
+	std::vector<int> compress(const R& a) const {
+		assert(ok);
+		std::vector<int> res;
+		for (auto it = std::ranges::begin(a); it != std::ranges::end(a); ++it)
+			res.push_back(rank(*it));
+		return res;
 	}
 
-	template<std::ranges::input_range Range>
-	requires std::convertible_to<std::ranges::range_reference_t<Range>, T>
-	std::vector<int> compress(const Range& input) const {
-		assert(built_);
-		std::vector<int> result;
-		for (auto it = std::ranges::begin(input); it != std::ranges::end(input); ++it)
-			result.push_back(rank(*it));
-		return result;
+	std::vector<T> restore(const std::vector<int>& b) const {
+		assert(ok);
+		std::vector<T> res;
+		res.reserve(b.size());
+		for (int i : b) res.push_back(value(i));
+		return res;
 	}
 
-	std::vector<T> restore(const std::vector<int>& compressed) const {
-		assert(built_);
-		std::vector<T> result;
-		result.reserve(compressed.size());
-		for (int i : compressed) result.push_back(value(i));
-		return result;
-	}
-
-	const std::vector<T>& values() const {
-		assert(built_);
-		return values_;
-	}
+	const std::vector<T>& values() const { assert(ok); return v; }
 
 private:
-	std::vector<T> values_;
-	bool built_ = false;
+	std::vector<T> v;
+	bool ok = false;
 };

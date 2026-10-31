@@ -1,3 +1,4 @@
+// Source: https://github.com/matsumoto2004/icpc2026
 #include <bits/stdc++.h>
 using namespace std;
 #define all(x) begin(x), end(x)
@@ -9,6 +10,7 @@ typedef pair<int, int> pii;
 typedef vector<int> vi;
 typedef pair<ll, ll> pl;
 typedef vector<ll> vl;
+typedef vector<vl> vvl;
 #define rep2(i, n) for (ll i = 0; i < (n); ++i)
 #define rep3(i, a, b) for (ll i = (a); i < (b); ++i)
 #define rep_select(_1, _2, _3, name, ...) name
@@ -18,5 +20,7 @@ typedef vector<ll> vl;
 #define rrep(...) rep_select(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
 
 int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
 
 }

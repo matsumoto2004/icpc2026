@@ -1,3 +1,4 @@
+// Source: https://github.com/matsumoto2004/icpc2026
 /**
  * Counts pairs (i, j) such that i < j and values[i] > values[j].
  * Duplicate values are not counted as inversions.
@@ -21,23 +22,23 @@ struct FenwickTree {
 	}
 
 	int sum(int r) const {
-		int result = 0;
-		for (; r > 0; r -= r & -r) result += data[r];
-		return result;
+		int res = 0;
+		for (; r > 0; r -= r & -r) res += data[r];
+		return res;
 	}
 };
 
 } // namespace inversion_count_detail
 
 template<class T>
-long long inversion_count(const std::vector<T>& values) {
-	Compress<T> compressed(values);
-	inversion_count_detail::FenwickTree tree(compressed.size());
-	long long result = 0;
-	for (int i = 0; i < (int)values.size(); ++i) {
-		int rank = compressed.rank(values[i]);
-		result += i - tree.sum(rank + 1);
-		tree.add(rank);
+long long inversion_count(const std::vector<T>& a) {
+	Compress<T> c(a);
+	inversion_count_detail::FenwickTree ft(c.size());
+	long long res = 0;
+	for (int i = 0; i < (int)a.size(); ++i) {
+		int p = c.rank(a[i]);
+		res += i - ft.sum(p + 1);
+		ft.add(p);
 	}
-	return result;
+	return res;
 }

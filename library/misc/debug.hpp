@@ -1,3 +1,4 @@
+// Source: https://github.com/matsumoto2004/icpc2026
 #pragma once
 
 #include <iostream>
@@ -8,39 +9,39 @@
 namespace debug_detail {
 
 template<class A, class B>
-void print(const std::pair<A, B>& value);
+void print(const std::pair<A, B>& a);
 
 template<class T>
-void print(const std::vector<T>& values);
+void print(const std::vector<T>& v);
 
 template<class T>
-void print(const T& value) {
-	if constexpr (requires { std::cerr << value; }) {
-		std::cerr << value;
-	} else if constexpr (requires { value.x; }) {
+void print(const T& a) {
+	if constexpr (requires { std::cerr << a; }) {
+		std::cerr << a;
+	} else if constexpr (requires { a.x; }) {
 		// KACTL's Mod exposes x but has no stream insertion operator.
-		static_assert(std::is_arithmetic_v<decltype(value.x)>);
-		std::cerr << value.x;
+		static_assert(std::is_arithmetic_v<decltype(a.x)>);
+		std::cerr << a.x;
 	} else {
 		static_assert(sizeof(T) == 0, "Unsupported debug value type");
 	}
 }
 
 template<class A, class B>
-void print(const std::pair<A, B>& value) {
+void print(const std::pair<A, B>& a) {
 	std::cerr << '(';
-	print(value.first);
+	print(a.first);
 	std::cerr << ", ";
-	print(value.second);
+	print(a.second);
 	std::cerr << ')';
 }
 
 template<class T>
-void print(const std::vector<T>& values) {
+void print(const std::vector<T>& v) {
 	std::cerr << '[';
-	for (int i = 0; i < (int)values.size(); ++i) {
+	for (int i = 0; i < (int)v.size(); ++i) {
 		if (i) std::cerr << ", ";
-		print(values[i]);
+		print(v[i]);
 	}
 	std::cerr << ']';
 }

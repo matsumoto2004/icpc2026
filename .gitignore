@@ -1,3 +1,12 @@
+# Share only these root paths; new solution files stay local by default.
+/*
+!/.gitignore
+!/.gitmodules
+!/README.md
+!/template.cpp
+!/library/
+!/kactl/
+
 # Personal workspace (shared code lives in template.cpp and library/)
 /problems/
 /scripts/
